@@ -61,9 +61,13 @@ def run_ctabgan(args):
     print(f"Device: {device}")
     print(f"Epochs: {epochs}")
 
+    # Use a temporary CSV path to avoid NoneType issue
+    temp_csv_path = os.path.join(save_path, "temp_data.csv")
+    df.to_csv(temp_csv_path, index=False)
+    
     # Create CTABGAN model
     model = CTABGAN(
-        raw_csv_path=None,
+        raw_csv_path=temp_csv_path,
         test_ratio=0.0,
         categorical_columns=categorical_columns,
         log_columns=[],
@@ -72,9 +76,6 @@ def run_ctabgan(args):
         problem_type={"Classification": y_col},
         epochs=epochs
     )
-    
-    # Set raw_df manually since we didn't provide raw_csv_path
-    model.raw_df = df
     
     # Train the model
     model.fit()
@@ -92,6 +93,10 @@ def run_ctabgan(args):
 
     # Save merged file for reference
     synth_df.to_csv(os.path.join(save_path, "synthetic_data.csv"), index=False)
+    
+    # Clean up temporary file
+    if os.path.exists(temp_csv_path):
+        os.remove(temp_csv_path)
 
     print(f"Synthetic data saved at: {save_path}")
 
