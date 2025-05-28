@@ -92,6 +92,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset_name", type=str, required=True, help="Dataset folder name under real_data_dir")
     parser.add_argument("--real_data_dir", type=str, default="Data", help="Path to real data directory")
+    parser.add_argument("--data_dir", type=str, default=None, help="Custom data directory to use directly (overrides real_data_dir)")
     parser.add_argument("--synthetic_data_dir", type=str, default="Synthetic", help="Path to save synthetic outputs")
     parser.add_argument("--seed", type=int, default=42, help="Random seed for reproducibility")
     parser.add_argument("--device", type=str, default="cuda", choices=["cuda", "cpu"], help="Training device")
@@ -102,4 +103,10 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
+    
+    # Override real_data_dir/dataset_name if data_dir is provided
+    if args.data_dir:
+        # Extract the parent directory and update args
+        args.real_data_dir = os.path.dirname(args.data_dir)
+    
     run_ctabganplus(args)

@@ -19,6 +19,7 @@ def main():
     parser.add_argument('--n', type=int, default=3, help='The n-steps in generative states (default: 3)')
     parser.add_argument('--gan', type=int, default=1, help='Whether to use GAN structure (1=yes, 0=no) (default: 1)')
     parser.add_argument('--seed', type=int, default=42, help='Random seed (default: 42)')
+    parser.add_argument('--data_dir', type=str, default=None, help='Custom data directory to use instead of default')
     args = parser.parse_args()
 
     # Set default epochs based on size if not provided
@@ -27,7 +28,12 @@ def main():
     
     model_name = "rlig"  # or "ganblr++"
     dataset_name = args.dataset
-    data_dir = f"Data/{dataset_name}"
+    
+    # Use custom data directory if provided
+    if args.data_dir:
+        data_dir = args.data_dir
+    else:
+        data_dir = f"Data/{dataset_name}"
     save_dir = os.path.join("Synthetic", dataset_name, model_name)
     os.makedirs(save_dir, exist_ok=True)
 

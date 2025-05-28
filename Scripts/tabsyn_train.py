@@ -23,7 +23,7 @@ def round_columns(X_real, X_synth, columns):
     return X_synth
 
 
-def run_tabsyn(dataset_name, seed=42):
+def run_tabsyn(dataset_name, seed=42, data_dir=None):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Set random seed for reproducibility
@@ -36,7 +36,9 @@ def run_tabsyn(dataset_name, seed=42):
         torch.backends.cudnn.benchmark = False
 
     model_name = "tabsyn"
-    data_dir = os.path.join("Data", dataset_name)
+    # Use custom data directory if provided
+    if data_dir is None:
+        data_dir = os.path.join("Data", dataset_name)
     save_dir = os.path.join("Synthetic", dataset_name, model_name)
     os.makedirs(save_dir, exist_ok=True)
 
@@ -134,6 +136,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', type=str, required=True)
     parser.add_argument('--seed', type=int, default=42, help='Random seed for reproducibility')
+    parser.add_argument('--data_dir', type=str, default=None, help='Custom data directory to use instead of default')
     args = parser.parse_args()
 
-    run_tabsyn(args.dataset, args.seed)
+    run_tabsyn(args.dataset, args.seed, args.data_dir)

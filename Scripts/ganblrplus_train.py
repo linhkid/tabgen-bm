@@ -19,6 +19,7 @@ def main():
     parser.add_argument('--epochs', type=int, default=None, help='Number of epochs (default: based on size_category)')
     parser.add_argument('--batch_size', type=int, default=64, help='Batch size for training')
     parser.add_argument('--seed', type=int, default=42, help='Random seed for reproducibility')
+    parser.add_argument('--data_dir', type=str, default=None, help='Custom data directory to use instead of default')
     args = parser.parse_args()
 
     # Set epochs based on size category if not specified
@@ -27,7 +28,13 @@ def main():
 
     model_name = "ganblrplus"
     dataset_name = args.dataset
-    data_dir = f"Data/{dataset_name}"
+    
+    # Use custom data directory if provided
+    if args.data_dir:
+        data_dir = args.data_dir
+    else:
+        data_dir = f"Data/{dataset_name}"
+        
     save_dir = os.path.join("Synthetic", dataset_name, model_name)
     os.makedirs(save_dir, exist_ok=True)
 

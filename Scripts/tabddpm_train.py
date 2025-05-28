@@ -140,15 +140,19 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Train TabDDPM and generate synthetic data")
     parser.add_argument('--dataset', type=str, required=True, help='Dataset name (e.g., adult)')
-    parser.add_argument('--real_data_dir', type=str, default='Data', help='Directory containing x_train.csv and y_train.csv')
+    parser.add_argument('--real_data_dir', type=str, default='Data', help='Base directory containing dataset folders')
+    parser.add_argument('--data_dir', type=str, default=None, help='Custom data directory to use directly (overrides real_data_dir)')
     parser.add_argument('--synthetic_dir', type=str, default='Synthetic', help='Directory to save synthetic output')
     parser.add_argument('--seed', type=int, default=42, help='Random seed for reproducibility')
 
     args = parser.parse_args()
+    
+    # Use the specific data_dir if provided, otherwise construct path from real_data_dir and dataset
+    data_dir = args.data_dir if args.data_dir else os.path.join(args.real_data_dir, args.dataset)
 
     run_tabddpm(
         dataset_name=args.dataset,
-        real_data_dir=args.real_data_dir,
+        real_data_dir=os.path.dirname(data_dir),  # Get the parent directory
         synthetic_dir=args.synthetic_dir,
         seed=args.seed
     )

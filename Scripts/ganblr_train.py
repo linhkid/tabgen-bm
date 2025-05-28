@@ -16,13 +16,20 @@ def main():
     parser.add_argument('--size_category', type=str, required=True, choices=['small', 'medium', 'large'],
                         help='Dataset size category (small/medium/large)')
     parser.add_argument('--seed', type=int, default=42, help='Random seed for reproducibility')
+    parser.add_argument('--data_dir', type=str, default=None, help='Custom data directory to use instead of default')
     args = parser.parse_args()
 
     args.epochs = 150 if args.size_category == 'large' else 100
 
     model_name = "ganblr"
     dataset_name = args.dataset
-    data_dir = f"Data/{dataset_name}"
+    
+    # Use custom data directory if provided
+    if args.data_dir:
+        data_dir = args.data_dir
+    else:
+        data_dir = f"Data/{dataset_name}"
+        
     save_dir = os.path.join("Synthetic", dataset_name, model_name)
     os.makedirs(save_dir, exist_ok=True)
 

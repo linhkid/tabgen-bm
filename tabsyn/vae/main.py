@@ -56,16 +56,32 @@ def compute_loss(X_num, X_cat, Recon_X_num, Recon_X_cat, mu_z, logvar_z):
 
 def main(args):
     dataname = args.dataname
-    data_dir = f'Data/{dataname}'
+    
+    # Set random seed for reproducibility
+    if args.seed is not None:
+        seed = args.seed
+        torch.manual_seed(seed)
+        np.random.seed(seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed_all(seed)
+            torch.backends.cudnn.deterministic = True
+            torch.backends.cudnn.benchmark = False
+        print(f"Using random seed: {seed}")
+    
+    # Use custom data directory if provided
+    if args.data_dir:
+        data_dir = args.data_dir
+        # For consistency, extract info from the same directory
+        info_path = os.path.join(data_dir, "info.json")
+    else:
+        data_dir = f'Data/{dataname}'
+        info_path = f'Data/{dataname}/info.json'
 
     max_beta = args.max_beta
     min_beta = args.min_beta
     lambd = args.lambd
 
-    device =  args.device
-
-
-    info_path = f'Data/{dataname}/info.json'
+    device = args.device
 
     with open(info_path, 'r') as f:
         info = json.load(f)
@@ -223,6 +239,8 @@ if __name__ == '__main__':
     parser.add_argument('--max_beta', type=float, default=1e-2, help='Initial Beta.')
     parser.add_argument('--min_beta', type=float, default=1e-5, help='Minimum Beta.')
     parser.add_argument('--lambd', type=float, default=0.7, help='Decay of Beta.')
+    parser.add_argument('--data_dir', type=str, default=None, help='Custom data directory to use instead of default.')
+    parser.add_argument('--seed', type=int, default=42, help='Random seed for reproducibility.')
 
     args = parser.parse_args()
 

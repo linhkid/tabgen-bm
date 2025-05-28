@@ -124,14 +124,18 @@ def run_great(dataset_name, real_data_dir="Data", synthetic_dir="Synthetic", see
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', required=True, help='Dataset name')
-    parser.add_argument('--real_data_dir', default='Data')
+    parser.add_argument('--real_data_dir', default='Data', help='Base directory containing dataset folders')
+    parser.add_argument('--data_dir', type=str, default=None, help='Custom data directory to use directly (overrides real_data_dir)')
     parser.add_argument('--synthetic_dir', default='Synthetic')
     parser.add_argument('--seed', type=int, default=42)
     args = parser.parse_args()
+    
+    # Use specific data_dir if provided, otherwise use the real_data_dir/dataset path
+    data_dir = args.data_dir if args.data_dir else os.path.join(args.real_data_dir, args.dataset)
 
     run_great(
         dataset_name=args.dataset,
-        real_data_dir=args.real_data_dir,
+        real_data_dir=os.path.dirname(data_dir),  # Get the parent directory
         synthetic_dir=args.synthetic_dir,
         seed=args.seed
     )

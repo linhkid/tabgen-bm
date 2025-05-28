@@ -116,10 +116,16 @@ def process_dataset(dataset_name, dataset_path, size_category, models, base_dir,
     script_path = os.path.join(base_dir, "Scripts/preprocess_encode_only.py")
     run_command(f"python {script_path} --input {csv_path} --output {discrete_csv}")
 
-    # Step 3: Split dataset into train/test (using system Python)
-    # Use a fixed seed for dataset splitting to ensure consistency
-    script_path = os.path.join(base_dir, "Scripts/split_dataset.py")
-    run_command(f"python {script_path} --input_csv {discrete_csv} --output_dir {data_dir} --seed 42")
+    # Step 3: Split dataset into train/test for each seed
+    # Split the dataset for each seed to ensure fair comparison
+    print(f"Creating {len(seeds)} different train/test splits for seeds: {seeds}")
+    for seed in seeds:
+        seed_dir = os.path.join(data_dir, f"seed{seed}")
+        os.makedirs(seed_dir, exist_ok=True)
+        
+        script_path = os.path.join(base_dir, "Scripts/split_dataset.py")
+        run_command(f"python {script_path} --input_csv {discrete_csv} --output_dir {seed_dir} --seed {seed}")
+        print(f"Created train/test split with seed {seed} in {seed_dir}")
 
     # Step 4: Train models and evaluate with multiple seeds
     for model in models:
@@ -132,6 +138,8 @@ def process_dataset(dataset_name, dataset_path, size_category, models, base_dir,
         # Run the model with each seed
         for seed in seeds:
             print(f"\nRunning {model} with seed {seed}")
+            # Use the seed-specific data directory for this run
+            seed_data_dir = os.path.join(data_dir, f"seed{seed}")
             synthetic_dir = os.path.join(model_dir, f"seed{seed}")
             os.makedirs(synthetic_dir, exist_ok=True)
 
@@ -140,85 +148,85 @@ def process_dataset(dataset_name, dataset_path, size_category, models, base_dir,
                 # Originally used TF environment
                 script_path = os.path.join(base_dir, "Scripts/ganblr_train.py")
                 run_command(
-                    f"python {script_path} --dataset {dataset_name} --size_category {size_category} --seed {seed}")
+                    f"python {script_path} --dataset {dataset_name} --size_category {size_category} --seed {seed} --data_dir {seed_data_dir}")
 
                 eval_script = os.path.join(base_dir, "Scripts/tstr_evaluation.py")
-                run_command(f"python {eval_script} --synthetic_dir {synthetic_dir} --real_test_dir {data_dir}")
+                run_command(f"python {eval_script} --synthetic_dir {synthetic_dir} --real_test_dir {seed_data_dir}")
 
             elif model == "ganblrplus":
                 # GANBLR++ model
                 script_path = os.path.join(base_dir, "Scripts/ganblrplus_train.py")
                 run_command(
-                    f"python {script_path} --dataset {dataset_name} --size_category {size_category} --seed {seed}")
+                    f"python {script_path} --dataset {dataset_name} --size_category {size_category} --seed {seed} --data_dir {seed_data_dir}")
 
                 eval_script = os.path.join(base_dir, "Scripts/tstr_evaluation.py")
-                run_command(f"python {eval_script} --synthetic_dir {synthetic_dir} --real_test_dir {data_dir}")
+                run_command(f"python {eval_script} --synthetic_dir {synthetic_dir} --real_test_dir {seed_data_dir}")
 
             elif model == "ctgan":
                 # CTGAN implementation (original CTGAN)
                 script_path = os.path.join(base_dir, "Scripts/ctgan_train.py")
                 run_command(
-                    f"python {script_path} --dataset_name {dataset_name} --real_data_dir {data_dir.rsplit('/', 1)[0]} --size_category {size_category} --gpu_id {gpu_id} --seed {seed}")
+                    f"python {script_path} --dataset_name {dataset_name} --data_dir {seed_data_dir} --size_category {size_category} --gpu_id {gpu_id} --seed {seed}")
 
                 eval_script = os.path.join(base_dir, "Scripts/tstr_evaluation.py")
-                run_command(f"python {eval_script} --synthetic_dir {synthetic_dir} --real_test_dir {data_dir}")
+                run_command(f"python {eval_script} --synthetic_dir {synthetic_dir} --real_test_dir {seed_data_dir}")
 
             elif model == "ctabgan":
                 # Originally used PyTorch environment
                 script_path = os.path.join(base_dir, "Scripts/ctabgan_train.py")
                 run_command(
-                    f"python {script_path} --dataset_name {dataset_name} --real_data_dir {data_dir.rsplit('/', 1)[0]} --size_category {size_category} --gpu_id {gpu_id} --seed {seed}")
+                    f"python {script_path} --dataset_name {dataset_name} --data_dir {seed_data_dir} --size_category {size_category} --gpu_id {gpu_id} --seed {seed}")
 
                 eval_script = os.path.join(base_dir, "Scripts/tstr_evaluation.py")
-                run_command(f"python {eval_script} --synthetic_dir {synthetic_dir} --real_test_dir {data_dir}")
+                run_command(f"python {eval_script} --synthetic_dir {synthetic_dir} --real_test_dir {seed_data_dir}")
 
             elif model == "ctabgan_plus":
                 # Originally used PyTorch environment
                 script_path = os.path.join(base_dir, "Scripts/simple_ctabganplus_train.py")
                 run_command(
-                    f"python {script_path} --dataset {dataset_name} --size_category {size_category} --gpu {gpu_id} --seed {seed}")
+                    f"python {script_path} --dataset {dataset_name} --size_category {size_category} --gpu {gpu_id} --seed {seed} --data_dir {seed_data_dir}")
 
                 eval_script = os.path.join(base_dir, "Scripts/tstr_evaluation.py")
-                run_command(f"python {eval_script} --synthetic_dir {synthetic_dir} --real_test_dir {data_dir}")
+                run_command(f"python {eval_script} --synthetic_dir {synthetic_dir} --real_test_dir {seed_data_dir}")
 
             elif model == "tabddpm":
                 # Originally used PyTorch environment
                 script_path = os.path.join(base_dir, "Scripts/tabddpm_train.py")
-                run_command(f"python {script_path} --dataset {dataset_name} --seed {seed}")
+                run_command(f"python {script_path} --dataset {dataset_name} --seed {seed} --data_dir {seed_data_dir}")
 
                 eval_script = os.path.join(base_dir, "Scripts/tstr_evaluation.py")
-                run_command(f"python {eval_script} --synthetic_dir {synthetic_dir} --real_test_dir {data_dir}")
+                run_command(f"python {eval_script} --synthetic_dir {synthetic_dir} --real_test_dir {seed_data_dir}")
 
             elif model == "tabsyn":
                 # Originally used PyTorch environment
                 script_path = os.path.join(base_dir, "Scripts/create_npy.py")
-                run_command(f"python {script_path} --dataset {dataset_name}")
+                run_command(f"python {script_path} --dataset {dataset_name} --data_dir {seed_data_dir}")
 
                 vae_script = os.path.join(base_dir, "tabsyn/vae/main.py")
-                run_command(f"python {vae_script} --dataname {dataset_name} --gpu {gpu_id} --seed {seed}")
+                run_command(f"python {vae_script} --dataname {dataset_name} --gpu {gpu_id} --seed {seed} --data_dir {seed_data_dir}")
 
                 train_script = os.path.join(base_dir, "Scripts/tabsyn_train.py")
-                run_command(f"python {train_script} --dataset {dataset_name} --seed {seed}")
+                run_command(f"python {train_script} --dataset {dataset_name} --seed {seed} --data_dir {seed_data_dir}")
 
                 eval_script = os.path.join(base_dir, "Scripts/tstr_evaluation.py")
-                run_command(f"python {eval_script} --synthetic_dir {synthetic_dir} --real_test_dir {data_dir}")
+                run_command(f"python {eval_script} --synthetic_dir {synthetic_dir} --real_test_dir {seed_data_dir}")
 
             elif model == "great":
                 # Originally used PyTorch environment
                 script_path = os.path.join(base_dir, "Scripts/great_train.py")
-                run_command(f"python {script_path} --dataset {dataset_name} --seed {seed}")
+                run_command(f"python {script_path} --dataset {dataset_name} --seed {seed} --data_dir {seed_data_dir}")
 
                 eval_script = os.path.join(base_dir, "Scripts/tstr_evaluation.py")
-                run_command(f"python {eval_script} --synthetic_dir {synthetic_dir} --real_test_dir {data_dir}")
+                run_command(f"python {eval_script} --synthetic_dir {synthetic_dir} --real_test_dir {seed_data_dir}")
 
             elif model == "rlig":
                 # RLIG is based on KDB module in ganblr
                 script_path = os.path.join(base_dir, "Scripts/rlig_train.py")
                 run_command(
-                    f"python {script_path} --dataset {dataset_name} --size_category {size_category} --seed {seed}")
+                    f"python {script_path} --dataset {dataset_name} --size_category {size_category} --seed {seed} --data_dir {seed_data_dir}")
 
                 eval_script = os.path.join(base_dir, "Scripts/tstr_evaluation.py")
-                run_command(f"python {eval_script} --synthetic_dir {synthetic_dir} --real_test_dir {data_dir}")
+                run_command(f"python {eval_script} --synthetic_dir {synthetic_dir} --real_test_dir {seed_data_dir}")
 
             print(f"Completed {model} for {dataset_name} with seed {seed}")
 
@@ -303,9 +311,10 @@ if __name__ == "__main__":
             # Run the averaging script
             run_command(f"python {avg_script} --model_dir {model_dir} --output_dir {avg_results_dir}")
 
-            # Run evaluation on the averaged results
+            # Use the first seed's data directory for evaluation on the averaged results
+            first_seed_data_dir = os.path.join(data_dir, f"seed{seeds[0]}")
             eval_script = os.path.join(base_dir, "Scripts/tstr_evaluation.py")
-            run_command(f"python {eval_script} --synthetic_dir {avg_results_dir} --real_test_dir {data_dir}")
+            run_command(f"python {eval_script} --synthetic_dir {avg_results_dir} --real_test_dir {first_seed_data_dir}")
 
             print(f"Completed averaging results for {model} on {dataset_name}")
 
