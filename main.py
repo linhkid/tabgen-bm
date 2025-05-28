@@ -83,6 +83,10 @@ def arff_to_csv(arff_file, output_csv):
 
 def run_command(cmd):
     """Run a shell command and print output"""
+    # Normalize path separators for Windows compatibility
+    if os.name == 'nt':  # Windows
+        cmd = cmd.replace('/', '\\')
+    
     print(f"Running: {cmd}")
     result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
     print(result.stdout)
@@ -94,6 +98,10 @@ def run_command(cmd):
 def process_dataset(dataset_name, dataset_path, size_category, models, base_dir, gpu_id=0, seeds=None):
     """Process a single dataset through the entire pipeline"""
     print(f"\n{'=' * 80}\nProcessing dataset: {dataset_name} ({size_category})\n{'=' * 80}")
+    
+    # Run a test command to check argument handling
+    test_script = os.path.join(base_dir, "Scripts", "check_args.py")
+    run_command(f"python {test_script} --dataset {dataset_name} --size_category {size_category} --seed 42 --data_dir test_dir")
 
     # Default seeds if not provided
     if seeds is None:
@@ -102,7 +110,7 @@ def process_dataset(dataset_name, dataset_path, size_category, models, base_dir,
     # Create directory structure with absolute paths
     raw_dir = os.path.join(base_dir, "Raw")
     discrete_dir = os.path.join(base_dir, "Discrete")
-    data_dir = os.path.join(base_dir, f"Data/{dataset_name}")
+    data_dir = os.path.join(base_dir, "Data", dataset_name)
     os.makedirs(raw_dir, exist_ok=True)
     os.makedirs(discrete_dir, exist_ok=True)
     os.makedirs(data_dir, exist_ok=True)
@@ -113,7 +121,7 @@ def process_dataset(dataset_name, dataset_path, size_category, models, base_dir,
 
     # Step 2: Preprocess to discrete values (using system Python)
     discrete_csv = os.path.join(discrete_dir, f"{dataset_name}_discrete.csv")
-    script_path = os.path.join(base_dir, "Scripts/preprocess_encode_only.py")
+    script_path = os.path.join(base_dir, "Scripts", "preprocess_encode_only.py")
     run_command(f"python {script_path} --input {csv_path} --output {discrete_csv}")
 
     # Step 3: Split dataset into train/test for each seed
@@ -123,7 +131,7 @@ def process_dataset(dataset_name, dataset_path, size_category, models, base_dir,
         seed_dir = os.path.join(data_dir, f"seed{seed}")
         os.makedirs(seed_dir, exist_ok=True)
         
-        script_path = os.path.join(base_dir, "Scripts/split_dataset.py")
+        script_path = os.path.join(base_dir, "Scripts", "split_dataset.py")
         run_command(f"python {script_path} --input_csv {discrete_csv} --output_dir {seed_dir} --seed {seed}")
         print(f"Created train/test split with seed {seed} in {seed_dir}")
 
@@ -132,7 +140,7 @@ def process_dataset(dataset_name, dataset_path, size_category, models, base_dir,
         print(f"\n{'-' * 40}\nTraining {model} on {dataset_name} with {len(seeds)} different seeds\n{'-' * 40}")
 
         # Create a directory for this model
-        model_dir = os.path.join(base_dir, f"Synthetic/{dataset_name}/{model}")
+        model_dir = os.path.join(base_dir, "Synthetic", dataset_name, model)
         os.makedirs(model_dir, exist_ok=True)
 
         # Run the model with each seed
@@ -146,87 +154,114 @@ def process_dataset(dataset_name, dataset_path, size_category, models, base_dir,
             # Note: We're using system Python for everything until conda environments are properly set up
             if model == "ganblr":
                 # Originally used TF environment
-                script_path = os.path.join(base_dir, "Scripts/ganblr_train.py")
+                script_path = os.path.join(base_dir, "Scripts", "ganblr_train.py")
                 run_command(
                     f"python {script_path} --dataset {dataset_name} --size_category {size_category} --seed {seed} --data_dir {seed_data_dir}")
 
-                eval_script = os.path.join(base_dir, "Scripts/tstr_evaluation.py")
-                run_command(f"python {eval_script} --synthetic_dir {synthetic_dir} --real_test_dir {seed_data_dir}")
+                eval_script = os.path.join(base_dir, "Scripts", "tstr_evaluation.py")
+                results_dir = os.path.join(base_dir, "Results", dataset_name)
+                os.makedirs(results_dir, exist_ok=True)
+                result_file = os.path.join(results_dir, f"{model}_tstr_seed{seed}.csv")
+                run_command(f"python {eval_script} --synthetic_dir {synthetic_dir} --real_test_dir {seed_data_dir} --output {result_file}")
 
             elif model == "ganblrplus":
                 # GANBLR++ model
-                script_path = os.path.join(base_dir, "Scripts/ganblrplus_train.py")
+                script_path = os.path.join(base_dir, "Scripts", "ganblrplus_train.py")
                 run_command(
                     f"python {script_path} --dataset {dataset_name} --size_category {size_category} --seed {seed} --data_dir {seed_data_dir}")
 
-                eval_script = os.path.join(base_dir, "Scripts/tstr_evaluation.py")
-                run_command(f"python {eval_script} --synthetic_dir {synthetic_dir} --real_test_dir {seed_data_dir}")
+                eval_script = os.path.join(base_dir, "Scripts", "tstr_evaluation.py")
+                results_dir = os.path.join(base_dir, "Results", dataset_name)
+                os.makedirs(results_dir, exist_ok=True)
+                result_file = os.path.join(results_dir, f"{model}_tstr_seed{seed}.csv")
+                run_command(f"python {eval_script} --synthetic_dir {synthetic_dir} --real_test_dir {seed_data_dir} --output {result_file}")
 
             elif model == "ctgan":
                 # CTGAN implementation (original CTGAN)
-                script_path = os.path.join(base_dir, "Scripts/ctgan_train.py")
+                script_path = os.path.join(base_dir, "Scripts", "ctgan_train.py")
                 run_command(
                     f"python {script_path} --dataset_name {dataset_name} --data_dir {seed_data_dir} --size_category {size_category} --gpu_id {gpu_id} --seed {seed}")
 
-                eval_script = os.path.join(base_dir, "Scripts/tstr_evaluation.py")
-                run_command(f"python {eval_script} --synthetic_dir {synthetic_dir} --real_test_dir {seed_data_dir}")
+                eval_script = os.path.join(base_dir, "Scripts", "tstr_evaluation.py")
+                results_dir = os.path.join(base_dir, "Results", dataset_name)
+                os.makedirs(results_dir, exist_ok=True)
+                result_file = os.path.join(results_dir, f"{model}_tstr_seed{seed}.csv")
+                run_command(f"python {eval_script} --synthetic_dir {synthetic_dir} --real_test_dir {seed_data_dir} --output {result_file}")
 
             elif model == "ctabgan":
                 # Originally used PyTorch environment
-                script_path = os.path.join(base_dir, "Scripts/ctabgan_train.py")
+                script_path = os.path.join(base_dir, "Scripts", "ctabgan_train.py")
                 run_command(
                     f"python {script_path} --dataset_name {dataset_name} --data_dir {seed_data_dir} --size_category {size_category} --gpu_id {gpu_id} --seed {seed}")
 
-                eval_script = os.path.join(base_dir, "Scripts/tstr_evaluation.py")
-                run_command(f"python {eval_script} --synthetic_dir {synthetic_dir} --real_test_dir {seed_data_dir}")
+                eval_script = os.path.join(base_dir, "Scripts", "tstr_evaluation.py")
+                results_dir = os.path.join(base_dir, "Results", dataset_name)
+                os.makedirs(results_dir, exist_ok=True)
+                result_file = os.path.join(results_dir, f"{model}_tstr_seed{seed}.csv")
+                run_command(f"python {eval_script} --synthetic_dir {synthetic_dir} --real_test_dir {seed_data_dir} --output {result_file}")
 
             elif model == "ctabgan_plus":
                 # Originally used PyTorch environment
-                script_path = os.path.join(base_dir, "Scripts/simple_ctabganplus_train.py")
+                script_path = os.path.join(base_dir, "Scripts", "simple_ctabganplus_train.py")
                 run_command(
                     f"python {script_path} --dataset {dataset_name} --size_category {size_category} --gpu {gpu_id} --seed {seed} --data_dir {seed_data_dir}")
 
-                eval_script = os.path.join(base_dir, "Scripts/tstr_evaluation.py")
-                run_command(f"python {eval_script} --synthetic_dir {synthetic_dir} --real_test_dir {seed_data_dir}")
+                eval_script = os.path.join(base_dir, "Scripts", "tstr_evaluation.py")
+                results_dir = os.path.join(base_dir, "Results", dataset_name)
+                os.makedirs(results_dir, exist_ok=True)
+                result_file = os.path.join(results_dir, f"{model}_tstr_seed{seed}.csv")
+                run_command(f"python {eval_script} --synthetic_dir {synthetic_dir} --real_test_dir {seed_data_dir} --output {result_file}")
 
             elif model == "tabddpm":
                 # Originally used PyTorch environment
-                script_path = os.path.join(base_dir, "Scripts/tabddpm_train.py")
+                script_path = os.path.join(base_dir, "Scripts", "tabddpm_train.py")
                 run_command(f"python {script_path} --dataset {dataset_name} --seed {seed} --data_dir {seed_data_dir}")
 
-                eval_script = os.path.join(base_dir, "Scripts/tstr_evaluation.py")
-                run_command(f"python {eval_script} --synthetic_dir {synthetic_dir} --real_test_dir {seed_data_dir}")
+                eval_script = os.path.join(base_dir, "Scripts", "tstr_evaluation.py")
+                results_dir = os.path.join(base_dir, "Results", dataset_name)
+                os.makedirs(results_dir, exist_ok=True)
+                result_file = os.path.join(results_dir, f"{model}_tstr_seed{seed}.csv")
+                run_command(f"python {eval_script} --synthetic_dir {synthetic_dir} --real_test_dir {seed_data_dir} --output {result_file}")
 
             elif model == "tabsyn":
                 # Originally used PyTorch environment
-                script_path = os.path.join(base_dir, "Scripts/create_npy.py")
+                script_path = os.path.join(base_dir, "Scripts", "create_npy.py")
                 run_command(f"python {script_path} --dataset {dataset_name} --data_dir {seed_data_dir}")
 
-                vae_script = os.path.join(base_dir, "tabsyn/vae/main.py")
+                vae_script = os.path.join(base_dir, "tabsyn", "vae", "main.py")
                 run_command(f"python {vae_script} --dataname {dataset_name} --gpu {gpu_id} --seed {seed} --data_dir {seed_data_dir}")
 
-                train_script = os.path.join(base_dir, "Scripts/tabsyn_train.py")
+                train_script = os.path.join(base_dir, "Scripts", "tabsyn_train.py")
                 run_command(f"python {train_script} --dataset {dataset_name} --seed {seed} --data_dir {seed_data_dir}")
 
-                eval_script = os.path.join(base_dir, "Scripts/tstr_evaluation.py")
-                run_command(f"python {eval_script} --synthetic_dir {synthetic_dir} --real_test_dir {seed_data_dir}")
+                eval_script = os.path.join(base_dir, "Scripts", "tstr_evaluation.py")
+                results_dir = os.path.join(base_dir, "Results", dataset_name)
+                os.makedirs(results_dir, exist_ok=True)
+                result_file = os.path.join(results_dir, f"{model}_tstr_seed{seed}.csv")
+                run_command(f"python {eval_script} --synthetic_dir {synthetic_dir} --real_test_dir {seed_data_dir} --output {result_file}")
 
             elif model == "great":
                 # Originally used PyTorch environment
-                script_path = os.path.join(base_dir, "Scripts/great_train.py")
+                script_path = os.path.join(base_dir, "Scripts", "great_train.py")
                 run_command(f"python {script_path} --dataset {dataset_name} --seed {seed} --data_dir {seed_data_dir}")
 
-                eval_script = os.path.join(base_dir, "Scripts/tstr_evaluation.py")
-                run_command(f"python {eval_script} --synthetic_dir {synthetic_dir} --real_test_dir {seed_data_dir}")
+                eval_script = os.path.join(base_dir, "Scripts", "tstr_evaluation.py")
+                results_dir = os.path.join(base_dir, "Results", dataset_name)
+                os.makedirs(results_dir, exist_ok=True)
+                result_file = os.path.join(results_dir, f"{model}_tstr_seed{seed}.csv")
+                run_command(f"python {eval_script} --synthetic_dir {synthetic_dir} --real_test_dir {seed_data_dir} --output {result_file}")
 
             elif model == "rlig":
                 # RLIG is based on KDB module in ganblr
-                script_path = os.path.join(base_dir, "Scripts/rlig_train.py")
+                script_path = os.path.join(base_dir, "Scripts", "rlig_train.py")
                 run_command(
                     f"python {script_path} --dataset {dataset_name} --size_category {size_category} --seed {seed} --data_dir {seed_data_dir}")
 
-                eval_script = os.path.join(base_dir, "Scripts/tstr_evaluation.py")
-                run_command(f"python {eval_script} --synthetic_dir {synthetic_dir} --real_test_dir {seed_data_dir}")
+                eval_script = os.path.join(base_dir, "Scripts", "tstr_evaluation.py")
+                results_dir = os.path.join(base_dir, "Results", dataset_name)
+                os.makedirs(results_dir, exist_ok=True)
+                result_file = os.path.join(results_dir, f"{model}_tstr_seed{seed}.csv")
+                run_command(f"python {eval_script} --synthetic_dir {synthetic_dir} --real_test_dir {seed_data_dir} --output {result_file}")
 
             print(f"Completed {model} for {dataset_name} with seed {seed}")
 
@@ -237,7 +272,7 @@ def process_dataset(dataset_name, dataset_path, size_category, models, base_dir,
             os.makedirs(avg_results_dir, exist_ok=True)
 
             # Create a script to average the results across seeds
-            avg_script = os.path.join(base_dir, "Scripts/average_results.py")
+            avg_script = os.path.join(base_dir, "Scripts", "average_results.py")
 
             # If the script doesn't exist, create it
             if not os.path.exists(avg_script):
@@ -313,8 +348,11 @@ if __name__ == "__main__":
 
             # Use the first seed's data directory for evaluation on the averaged results
             first_seed_data_dir = os.path.join(data_dir, f"seed{seeds[0]}")
-            eval_script = os.path.join(base_dir, "Scripts/tstr_evaluation.py")
-            run_command(f"python {eval_script} --synthetic_dir {avg_results_dir} --real_test_dir {first_seed_data_dir}")
+            eval_script = os.path.join(base_dir, "Scripts", "tstr_evaluation.py")
+            results_dir = os.path.join(base_dir, "Results", dataset_name)
+            os.makedirs(results_dir, exist_ok=True)
+            result_file = os.path.join(results_dir, f"{model}_tstr_avg.csv")
+            run_command(f"python {eval_script} --synthetic_dir {avg_results_dir} --real_test_dir {first_seed_data_dir} --output {result_file}")
 
             print(f"Completed averaging results for {model} on {dataset_name}")
 

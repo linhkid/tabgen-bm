@@ -57,14 +57,25 @@ def evaluate_models(x_train, y_train, x_test, y_test):
 
     return results
 
-def save_results_to_csv(results, synthetic_dir):
-    parts = os.path.normpath(synthetic_dir).split(os.sep)
-    model_name = parts[-1]
-    dataset_name = parts[-2]
+def save_results_to_csv(results, synthetic_dir, output_path=None):
+    if output_path is None:
+        # Auto-generate path based on synthetic_dir
+        parts = os.path.normpath(synthetic_dir).split(os.sep)
+        if len(parts) >= 3:
+            model_name = parts[-2]  # Now model_name is the second-to-last part
+            seed_name = parts[-1]   # And the seed folder is the last part
+            dataset_name = parts[-3] # Dataset is the third-to-last part
+        else:
+            model_name = parts[-1]
+            dataset_name = parts[-2]
+            seed_name = "default"
 
-    results_dir = os.path.join("Results", dataset_name)
-    os.makedirs(results_dir, exist_ok=True)
-    output_path = os.path.join(results_dir, f"{model_name}_tstr.csv")
+        results_dir = os.path.join("Results", dataset_name)
+        os.makedirs(results_dir, exist_ok=True)
+        output_path = os.path.join(results_dir, f"{model_name}_{seed_name}_tstr.csv")
+    else:
+        # Ensure the directory exists
+        os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
 
     with open(output_path, mode='w', newline='') as file:
         writer = csv.writer(file)
@@ -82,6 +93,7 @@ def main():
     parser = argparse.ArgumentParser(description="TSTR Evaluation Script")
     parser.add_argument('--synthetic_dir', type=str, required=True, help='Path to synthetic data directory')
     parser.add_argument('--real_test_dir', type=str, required=True, help='Path to real test data directory')
+    parser.add_argument('--output', type=str, help='Path to save results CSV (optional)')
     args = parser.parse_args()
 
     x_synth, y_synth, x_test, y_test = load_data(args.synthetic_dir, args.real_test_dir)
@@ -93,7 +105,7 @@ def main():
         for metric_name, value in metrics.items():
             print(f"{metric_name}: {value:.4f}")
 
-    save_results_to_csv(results, args.synthetic_dir)
+    save_results_to_csv(results, args.synthetic_dir, args.output)
 
 if __name__ == "__main__":
     main()
