@@ -36,14 +36,31 @@ def improve_reproducibility(seed):
 
 def run_ctgan(args):
     # Setup paths
-    dataset_path = os.path.join(args.real_data_dir, args.dataset_name)
+    if args.data_dir:
+        # If a specific data directory is provided, use it directly
+        dataset_path = args.data_dir
+    else:
+        # Otherwise, construct from real_data_dir and dataset_name
+        dataset_path = os.path.join(args.real_data_dir, args.dataset_name)
+    
     x_path = os.path.join(dataset_path, "x_train.csv")
     y_path = os.path.join(dataset_path, "y_train.csv")
-    save_path = os.path.join(args.synthetic_data_dir, args.dataset_name, "ctgan")
+    
+    # Create a seed-specific save directory
+    save_path = os.path.join(args.synthetic_data_dir, args.dataset_name, "ctgan", f"seed{args.seed}")
     os.makedirs(save_path, exist_ok=True)
 
     # Load info.json
-    info_path = os.path.join(args.real_data_dir, args.dataset_name, "info.json")
+    if args.data_dir:
+        # Try to find info.json in the provided data directory first
+        info_path = os.path.join(args.data_dir, "info.json")
+        if not os.path.exists(info_path):
+            # If not found, look in the parent directory
+            parent_dir = os.path.dirname(args.data_dir)
+            info_path = os.path.join(parent_dir, "info.json")
+    else:
+        info_path = os.path.join(args.real_data_dir, args.dataset_name, "info.json")
+    
     with open(info_path, "r") as f:
         info = json.load(f)
 
@@ -154,6 +171,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset_name", type=str, required=True, help="Dataset folder name under real_data_dir")
     parser.add_argument("--real_data_dir", type=str, default="Data", help="Path to real data directory")
+    parser.add_argument("--data_dir", type=str, default=None, help="Custom data directory to use directly (overrides real_data_dir)")
     parser.add_argument("--synthetic_data_dir", type=str, default="Synthetic", help="Path to save synthetic outputs")
     parser.add_argument("--seed", type=int, default=42, help="Random seed for reproducibility")
     parser.add_argument("--gpu_id", type=int, default=-1, help="GPU ID to use (-1 for CPU)")
