@@ -137,6 +137,14 @@ def process_dataset(dataset_name, dataset_path, size_category, models, base_dir,
             eval_script = os.path.join(base_dir, "Scripts/tstr_evaluation.py")
             run_command(f"python {eval_script} --synthetic_dir {synthetic_dir} --real_test_dir {data_dir}")
         
+        elif model == "ctgan":
+            # SDV's CTGAN implementation (original CTGAN)
+            script_path = os.path.join(base_dir, "Scripts/ctgan_train.py")
+            run_command(f"python {script_path} --dataset_name {dataset_name} --real_data_dir {data_dir.rsplit('/', 1)[0]} --size_category {size_category} --gpu_id {gpu_id}")
+            
+            eval_script = os.path.join(base_dir, "Scripts/tstr_evaluation.py")
+            run_command(f"python {eval_script} --synthetic_dir {synthetic_dir} --real_test_dir {data_dir}")
+            
         elif model == "ctabgan":
             # Originally used PyTorch environment
             script_path = os.path.join(base_dir, "Scripts/ctabgan_train.py")
@@ -196,12 +204,12 @@ def process_dataset(dataset_name, dataset_path, size_category, models, base_dir,
 def main():
     parser = argparse.ArgumentParser(description="Tabular Data Generation Benchmark Runner")
     parser.add_argument('--datasets', nargs='+', help='List of specific datasets to run (default: all)')
-    parser.add_argument('--models', nargs='+', choices=['ganblr', 'ganblrplus', 'ctabgan', 'ctabgan_plus', 'tabddpm', 'tabsyn', 'great', 'rlig', 'all'], 
+    parser.add_argument('--models', nargs='+', choices=['ganblr', 'ganblrplus', 'ctabgan', 'ctgan', 'ctabgan_plus', 'tabddpm', 'tabsyn', 'great', 'rlig', 'all'], 
                         default=['all'], help='Models to run')
     parser.add_argument('--gpu', type=int, default=0, help='GPU ID to use')
     parser.add_argument('--single_run', action='store_true', help='Run just one model on one dataset (useful for testing)')
     parser.add_argument('--dataset', type=str, help='Dataset name for single run')
-    parser.add_argument('--model', type=str, choices=['ganblr', 'ganblrplus', 'ctabgan', 'ctabgan_plus', 'tabddpm', 'tabsyn', 'great', 'rlig'], 
+    parser.add_argument('--model', type=str, choices=['ganblr', 'ganblrplus', 'ctabgan', 'ctgan', 'ctabgan_plus', 'tabddpm', 'tabsyn', 'great', 'rlig'], 
                        help='Model name for single run')
     parser.add_argument('--size', type=str, choices=['small', 'medium', 'large'], default='medium', 
                        help='Size category for single run')
@@ -250,7 +258,7 @@ def main():
     # Determine which models to run
     models_to_run = []
     if 'all' in args.models:
-        models_to_run = ['ganblr', 'ganblrplus', 'ctabgan', 'ctabgan_plus', 'tabddpm', 'tabsyn', 'great', 'rlig']
+        models_to_run = ['ganblr', 'ganblrplus', 'ctabgan', 'ctgan', 'ctabgan_plus', 'tabddpm', 'tabsyn', 'great', 'rlig']
     else:
         models_to_run = args.models
     
