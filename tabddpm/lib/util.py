@@ -19,7 +19,7 @@ import numpy as np
 import tomli
 import tomli_w
 import torch
-import zero
+import  zero
 
 from . import env
 
@@ -44,13 +44,25 @@ class TaskType(enum.Enum):
 
     def __str__(self) -> str:
         return self.value
+import time
+class Timer():
+    # @classmethod
+    # def launch(cls) -> 'Timer':
+    #     timer = cls()
+    #     timer.run()
+    #     return timer
+    def __init__(self):
+        self.start_time = None
+        self.running = False
 
-class Timer(zero.Timer):
+    def run(self):
+        self.start_time = time.time()
+        self.running = True
+
+
     @classmethod
     def launch(cls) -> 'Timer':
         timer = cls()
-        timer.run()
-        return timer
 
 
 def update_training_log(training_log, data, metrics):

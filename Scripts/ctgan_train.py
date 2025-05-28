@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
 import sys
+
 sys.path.append(os.path.abspath("."))
 import pandas as pd
 import numpy as np
@@ -9,16 +10,19 @@ import torch
 import random
 import json
 import warnings
+
 warnings.filterwarnings("ignore")
 
-# Import CTGAN from SDV package
+# Import CTGAN from the original implementation
 try:
-    from sdv.tabular import CTGAN
+    from ctgan import CTGAN
 except ImportError:
     print("CTGAN not found, attempting to install...")
     import subprocess
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "sdv"])
-    from sdv.tabular import CTGAN
+
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "ctgan"])
+    from ctgan import CTGAN
+
 
 def improve_reproducibility(seed):
     np.random.seed(seed)
@@ -28,6 +32,7 @@ def improve_reproducibility(seed):
         torch.cuda.manual_seed(seed)
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
+
 
 def run_ctgan(args):
     # Setup paths
@@ -44,7 +49,7 @@ def run_ctgan(args):
 
     # Determine column indices and types
     cat_idx = info.get("cat_col_idx", [])
-    num_idx = info.get("num_col_idx", [])    
+    num_idx = info.get("num_col_idx", [])
 
     # Load data
     X = pd.read_csv(x_path)
@@ -54,26 +59,26 @@ def run_ctgan(args):
 
     # Convert indices to column names
     feature_columns = X.columns.tolist()
-    
+
     # Create metadata for CTGAN
     discrete_columns = [feature_columns[i] for i in cat_idx]
     if y_col not in discrete_columns:
         discrete_columns.append(y_col)
-    
+
     # Set reproducibility and determine batch size
     improve_reproducibility(args.seed)
-    
+
     # Determine batch size based on dataset size
     if args.size_category == "small":
         batch_size = 500
         epochs = 300
     elif args.size_category == "medium":
-        batch_size = 1000 
+        batch_size = 1000
         epochs = 150
     else:  # large
         batch_size = 2000
         epochs = 100
-    
+
     # Determine device
     device = "cuda" if args.gpu_id >= 0 and torch.cuda.is_available() else "cpu"
     if device == "cuda":
@@ -92,7 +97,6 @@ def run_ctgan(args):
     try:
         # Initialize and train CTGAN model
         model = CTGAN(
-            primary_key=None,
             epochs=epochs,
             batch_size=batch_size,
             embedding_dim=128,
@@ -102,17 +106,20 @@ def run_ctgan(args):
             discriminator_lr=2e-4,
             discriminator_steps=1,
             verbose=True,
-            cuda=device=="cuda"
+            cuda=(device == "cuda")
         )
-        
+
+        # Convert column names to strings for CTGAN
+        df.columns = df.columns.astype(str)
+
         # Train model
         model.fit(df, discrete_columns=discrete_columns)
-        
+
         # Generate synthetic data
         num_samples = len(df)
         print(f"Generating {num_samples} synthetic samples...")
         synth_df = model.sample(num_samples)
-        
+
         # Split features and target
         x_synth = synth_df.drop(columns=[y_col])
         y_synth = synth_df[[y_col]]
@@ -123,24 +130,25 @@ def run_ctgan(args):
 
         # Save merged file for reference
         synth_df.to_csv(os.path.join(save_path, "synthetic_data.csv"), index=False)
-        
+
         print(f"Synthetic data saved at: {save_path}")
-        
+
         # Remove the progress tracking file
         if os.path.exists(os.path.join(save_path, "training_started.txt")):
             os.remove(os.path.join(save_path, "training_started.txt"))
-            
+
     except Exception as e:
         print(f"Error training CTGAN model: {str(e)}")
         # If training fails, create empty output files to avoid breaking the pipeline
         pd.DataFrame(columns=X.columns).to_csv(os.path.join(save_path, "x_synth.csv"), index=False)
         pd.DataFrame(columns=y.columns).to_csv(os.path.join(save_path, "y_synth.csv"), index=False)
-        
+
         # Save the error message
         with open(os.path.join(save_path, "error.txt"), "w") as f:
             f.write(str(e))
-            
+
         print(f"Created empty output files at: {save_path}")
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

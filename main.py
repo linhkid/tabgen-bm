@@ -155,8 +155,8 @@ def process_dataset(dataset_name, dataset_path, size_category, models, base_dir,
             
         elif model == "ctabgan_plus":
             # Originally used PyTorch environment
-            script_path = os.path.join(base_dir, "Scripts/simple_ctabganplus_train.py")
-            run_command(f"python {script_path} --dataset {dataset_name} --size_category {size_category} --gpu {gpu_id}")
+            script_path = os.path.join(base_dir, "Scripts/ctabganplus_train.py")
+            run_command(f"python {script_path} --dataset {dataset_name} --size_category {size_category}")
             
             eval_script = os.path.join(base_dir, "Scripts/tstr_evaluation.py")
             run_command(f"python {eval_script} --synthetic_dir {synthetic_dir} --real_test_dir {data_dir}")

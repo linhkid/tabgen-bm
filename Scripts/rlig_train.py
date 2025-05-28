@@ -5,7 +5,7 @@ import argparse
 import pandas as pd
 import numpy as np
 import random
-from ganblr.model.rlig import RLiG
+from ganblr.models.rlig import RLiG
 
 def main():
     parser = argparse.ArgumentParser(description="Train RLiG (GANBLR++) and generate synthetic data")
@@ -23,7 +23,7 @@ def main():
 
     # Set default epochs based on size if not provided
     if args.epochs is None:
-        args.epochs = 150 if args.size_category == 'large' else 100
+        args.epochs = 50 if args.size_category == 'large' else 20
     
     model_name = "rlig"  # or "ganblr++"
     dataset_name = args.dataset

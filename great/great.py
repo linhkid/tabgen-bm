@@ -59,7 +59,7 @@ class GReaT:
         self,
         llm: str,
         experiment_dir: str = "trainer_great",
-        epochs: int = 100,
+        epochs: int = 30,
         batch_size: int = 8,
         efficient_finetuning: str = "",
         float_precision: tp.Optional[int] = None,

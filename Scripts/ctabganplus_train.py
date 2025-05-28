@@ -52,7 +52,7 @@ def run_ctabganplus(args):
 
 
     # Determine epochs based on paper (300 for small, 150 for others)
-    epochs = 300 if args.size_category == "small" else 150
+    epochs = 50 if args.size_category == "small" else 20
 
     print(f"\n--- Running CTAB-GAN+ for dataset {args.dataset_name} ---")
 

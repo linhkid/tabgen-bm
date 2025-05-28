@@ -14,7 +14,7 @@ def main():
     parser.add_argument('--size_category', type=str, required=True, choices=['small', 'medium', 'large'], help='Dataset size category (small/medium/large)')
     args = parser.parse_args()
 
-    args.epochs = 150 if args.size_category == 'large' else 100
+    args.epochs = 50 if args.size_category == 'large' else 20
     
     model_name = "ganblr"
     dataset_name = args.dataset

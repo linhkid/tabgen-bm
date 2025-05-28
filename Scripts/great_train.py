@@ -107,7 +107,7 @@ def run_great(dataset_name, real_data_dir="Data", synthetic_dir="Synthetic", see
         guided_sampling=False,
         temperature=0.7,
         device=device,
-        batch_size=100 
+        k=100
     ).reset_index(drop=True)
 
     if "label" not in df_synth.columns:

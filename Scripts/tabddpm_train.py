@@ -27,7 +27,7 @@ def run_tabddpm(dataset_name, real_data_dir="Data", synthetic_dir="Synthetic", s
     # === Set Seed for Reproducibility ===
     np.random.seed(seed)
     random.seed(seed)
-    zero.improve_reproducibility(seed)
+    #zero.improve_reproducibility(seed)
 
     # === Load and Format Data ===
     X = pd.read_csv(x_train_path)

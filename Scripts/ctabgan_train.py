@@ -66,7 +66,7 @@ def run_ctabgan(args):
         # The CTABGAN model uses CUDA internally, no need to set it explicitly
 
     # Determine epochs based on dataset size (300 for small, 150 for others)
-    epochs = 300 if args.size_category == "small" else 150
+    epochs = 50 if args.size_category == "small" else 20
 
     print(f"\n--- Running CTAB-GAN for dataset {args.dataset_name} ---")
     print(f"Device: {device}")
@@ -128,7 +128,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--size_category", type=str, required=True,
         choices=["small", "medium", "large"],
-        help="Dataset size category: small → 300 epochs, medium/large → 150"
+        help="Dataset size category: small → 50 epochs, medium/large → 20"
     )
 
     args = parser.parse_args()

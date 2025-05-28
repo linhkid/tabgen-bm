@@ -25,7 +25,7 @@ def safe_train_test_split(x_df, y_df, cat_idx, test_size=0.2, seed_start=42):
                 break
 
         if flag == 0:
-            print(f"✅ Split successful with seed {seed}")
+            print(f"Split successful with seed {seed}")
             return x_train, x_test, y_train, y_test
         else:
             seed += 1
@@ -70,7 +70,7 @@ def convert_csv_to_npy(dataset_name, data_dir="Data", test_size=0.2, random_stat
     np.save(os.path.join(dataset_path, "y_train.npy"), y_train.to_numpy().ravel())
     np.save(os.path.join(dataset_path, "y_test.npy"), y_test.to_numpy().ravel())
 
-    print("✅ Saved .npy files:")
+    print("Saved .npy files:")
     print(f"- X_num_train.npy (shape={X_num_train.shape})")
     print(f"- X_num_test.npy  (shape={X_num_test.shape})")
     print(f"- X_cat_train.npy (shape={X_cat_train.shape})")
