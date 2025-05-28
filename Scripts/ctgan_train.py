@@ -41,7 +41,13 @@ def run_ctgan(args):
         dataset_path = args.data_dir
     else:
         # Otherwise, construct from real_data_dir and dataset_name
-        dataset_path = os.path.join(args.real_data_dir, args.dataset_name)
+        # For seed-specific directory structure
+        seed_dir = os.path.join(args.real_data_dir, args.dataset_name, f"seed{args.seed}")
+        if os.path.exists(seed_dir):
+            dataset_path = seed_dir
+        else:
+            # Fallback to the regular path
+            dataset_path = os.path.join(args.real_data_dir, args.dataset_name)
     
     x_path = os.path.join(dataset_path, "x_train.csv")
     y_path = os.path.join(dataset_path, "y_train.csv")
@@ -51,15 +57,17 @@ def run_ctgan(args):
     os.makedirs(save_path, exist_ok=True)
 
     # Load info.json
-    if args.data_dir:
-        # Try to find info.json in the provided data directory first
-        info_path = os.path.join(args.data_dir, "info.json")
-        if not os.path.exists(info_path):
-            # If not found, look in the parent directory
-            parent_dir = os.path.dirname(args.data_dir)
-            info_path = os.path.join(parent_dir, "info.json")
-    else:
-        info_path = os.path.join(args.real_data_dir, args.dataset_name, "info.json")
+    # First, try directly in the dataset_path directory
+    info_path = os.path.join(dataset_path, "info.json")
+    
+    # If not found, try one level up in the directory structure
+    if not os.path.exists(info_path):
+        parent_dir = os.path.dirname(dataset_path)
+        info_path = os.path.join(parent_dir, "info.json")
+    
+    # If still not found, try in the base data directory
+    if not os.path.exists(info_path):
+        info_path = os.path.join(args.real_data_dir, "info.json")
     
     with open(info_path, "r") as f:
         info = json.load(f)

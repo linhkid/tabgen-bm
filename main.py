@@ -180,11 +180,11 @@ def process_dataset(dataset_name, dataset_path, size_category, models, base_dir,
                 # CTGAN implementation (original CTGAN)
                 script_path = os.path.join(base_dir, "Scripts", "ctgan_train.py")
                 
-                # Extract parent directory for real_data_dir 
-                parent_dir = os.path.dirname(seed_data_dir)
+                # Use the base Data directory for real_data_dir
+                base_data_dir = os.path.join(base_dir, "Data")
                 
                 run_command(
-                    f"python {script_path} --dataset_name {dataset_name} --real_data_dir {parent_dir} --size_category {size_category} --gpu_id {gpu_id} --seed {seed}")
+                    f"python {script_path} --dataset_name {dataset_name} --real_data_dir {base_data_dir} --size_category {size_category} --gpu_id {gpu_id} --seed {seed}")
 
                 eval_script = os.path.join(base_dir, "Scripts", "tstr_evaluation.py")
                 results_dir = os.path.join(base_dir, "Results", dataset_name)
@@ -196,11 +196,11 @@ def process_dataset(dataset_name, dataset_path, size_category, models, base_dir,
                 # Originally used PyTorch environment
                 script_path = os.path.join(base_dir, "Scripts", "ctabgan_train.py")
                 
-                # Extract parent directory for real_data_dir 
-                parent_dir = os.path.dirname(seed_data_dir)
+                # Use the base Data directory for real_data_dir
+                base_data_dir = os.path.join(base_dir, "Data")
                 
                 run_command(
-                    f"python {script_path} --dataset_name {dataset_name} --real_data_dir {parent_dir} --size_category {size_category} --gpu_id {gpu_id} --seed {seed}")
+                    f"python {script_path} --dataset_name {dataset_name} --real_data_dir {base_data_dir} --size_category {size_category} --gpu_id {gpu_id} --seed {seed}")
 
                 eval_script = os.path.join(base_dir, "Scripts", "tstr_evaluation.py")
                 results_dir = os.path.join(base_dir, "Results", dataset_name)
@@ -212,11 +212,11 @@ def process_dataset(dataset_name, dataset_path, size_category, models, base_dir,
                 # Originally used PyTorch environment
                 script_path = os.path.join(base_dir, "Scripts", "ctabganplus_train.py")
                 
-                # Extract parent directory for real_data_dir 
-                parent_dir = os.path.dirname(seed_data_dir)
+                # Use the base Data directory for real_data_dir
+                base_data_dir = os.path.join(base_dir, "Data")
                 
                 run_command(
-                    f"python {script_path} --dataset_name {dataset_name} --real_data_dir {parent_dir} --size_category {size_category} --device cuda --seed {seed}")
+                    f"python {script_path} --dataset_name {dataset_name} --real_data_dir {base_data_dir} --size_category {size_category} --device cuda --seed {seed}")
 
                 eval_script = os.path.join(base_dir, "Scripts", "tstr_evaluation.py")
                 results_dir = os.path.join(base_dir, "Results", dataset_name)
