@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 import random
 from sklearn.model_selection import StratifiedKFold
-from ganblr.models.ganblr import GANBLR
+from ganblr.model.ganblr import GANBLR
 
 def main():
     parser = argparse.ArgumentParser(description="Train GANBLR and generate synthetic data")
