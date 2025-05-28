@@ -5,6 +5,7 @@ import numpy as np
 import torch
 import random
 import sys
+
 sys.path.append(os.path.abspath("."))
 
 from tabsyn.model import MLPDiffusion, Model
@@ -13,6 +14,7 @@ from tabsyn.diffusion_utils import sample
 
 from scipy.spatial.distance import cdist
 
+
 def round_columns(X_real, X_synth, columns):
     for col in columns:
         uniq = np.unique(X_real[:, col])
@@ -20,11 +22,11 @@ def round_columns(X_real, X_synth, columns):
         X_synth[:, col] = uniq[dist.argmin(axis=1)]
     return X_synth
 
-def run_tabsyn(dataset_name):
+
+def run_tabsyn(dataset_name, seed=42):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Set random seed for reproducibility
-    seed = 42
     np.random.seed(seed)
     random.seed(seed)
     torch.manual_seed(seed)
@@ -32,7 +34,7 @@ def run_tabsyn(dataset_name):
         torch.cuda.manual_seed_all(seed)
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
-    
+
     model_name = "tabsyn"
     data_dir = os.path.join("Data", dataset_name)
     save_dir = os.path.join("Synthetic", dataset_name, model_name)
@@ -83,7 +85,7 @@ def run_tabsyn(dataset_name):
                 break
 
         if (epoch + 1) % 100 == 0:
-            print(f"Epoch {epoch+1}: loss = {avg_loss:.6f}")
+            print(f"Epoch {epoch + 1}: loss = {avg_loss:.6f}")
 
     print(f"Best loss: {best_loss:.6f}")
     model.load_state_dict(best_state)
@@ -106,11 +108,11 @@ def run_tabsyn(dataset_name):
     num_col_idx = info_gen['num_col_idx']
     X_real = pd.read_csv(os.path.join(data_dir, "x_train.csv")).values
     syn_num = round_columns(X_real[:, num_col_idx], syn_num, list(range(len(num_col_idx))))
-    
+
     syn_df = recover_data(syn_num, syn_cat, syn_target, info_gen)
 
     idx_name_map = info_gen.get('idx_name_mapping', None)
-    
+
     if idx_name_map is not None:
         idx_name_map = {int(k): v for k, v in idx_name_map.items()}
         syn_df.rename(columns=idx_name_map, inplace=True)
@@ -121,15 +123,17 @@ def run_tabsyn(dataset_name):
         target_cols = info_gen['target_col_idx']
         x_synth = syn_df.drop(syn_df.columns[target_cols], axis=1)
         y_synth = syn_df.iloc[:, target_cols]
-    
+
     x_synth.to_csv(os.path.join(save_dir, "x_synth.csv"), index=False)
     y_synth.to_csv(os.path.join(save_dir, "y_synth.csv"), index=False)
 
     print(f"\n Synthetic data saved to {save_dir}")
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', type=str, required=True)
+    parser.add_argument('--seed', type=int, default=42, help='Random seed for reproducibility')
     args = parser.parse_args()
-    
-    run_tabsyn(args.dataset)
+
+    run_tabsyn(args.dataset, args.seed)

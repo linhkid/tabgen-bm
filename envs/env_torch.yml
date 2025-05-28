@@ -76,7 +76,7 @@ dependencies:
 - pip
 - pycparser
 - pysocks
-- python=3.9.21
+- python=3.11.9
 - pytorch-cuda
 - pytorch-mutex
 - requests
