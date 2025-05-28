@@ -18,7 +18,9 @@ def run_tabddpm(dataset_name, real_data_dir="Data", synthetic_dir="Synthetic", s
     # === Setup Paths ===
     model_name = "tabddpm"
     data_path = os.path.join(real_data_dir, dataset_name)
-    save_path = os.path.join(synthetic_dir, dataset_name, model_name)
+    
+    # Create a seed-specific save directory
+    save_path = os.path.join(synthetic_dir, dataset_name, model_name, f"seed{seed}")
     os.makedirs(save_path, exist_ok=True)
 
     x_train_path = os.path.join(data_path, "x_train.csv")

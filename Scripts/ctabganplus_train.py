@@ -22,7 +22,9 @@ def run_ctabganplus(args):
     dataset_path = os.path.join(args.real_data_dir, args.dataset_name)
     x_path = os.path.join(dataset_path, "x_train.csv")
     y_path = os.path.join(dataset_path, "y_train.csv")
-    save_path = os.path.join(args.synthetic_data_dir, args.dataset_name, "ctabgan_plus")
+    
+    # Create a seed-specific save directory
+    save_path = os.path.join(args.synthetic_data_dir, args.dataset_name, "ctabgan_plus", f"seed{args.seed}")
     os.makedirs(save_path, exist_ok=True)
 
     # Load info.json

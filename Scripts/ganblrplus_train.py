@@ -34,8 +34,10 @@ def main():
         data_dir = args.data_dir
     else:
         data_dir = f"Data/{dataset_name}"
-        
-    save_dir = os.path.join("Synthetic", dataset_name, model_name)
+    
+    # Create a seed-specific save directory
+    seed = args.seed
+    save_dir = os.path.join("Synthetic", dataset_name, model_name, f"seed{seed}")
     os.makedirs(save_dir, exist_ok=True)
 
     x_train_path = os.path.join(data_dir, "x_train.csv")

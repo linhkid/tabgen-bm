@@ -39,7 +39,9 @@ def run_tabsyn(dataset_name, seed=42, data_dir=None):
     # Use custom data directory if provided
     if data_dir is None:
         data_dir = os.path.join("Data", dataset_name)
-    save_dir = os.path.join("Synthetic", dataset_name, model_name)
+        
+    # Create a seed-specific save directory
+    save_dir = os.path.join("Synthetic", dataset_name, model_name, f"seed{seed}")
     os.makedirs(save_dir, exist_ok=True)
 
     # Load VAE latent embeddings
