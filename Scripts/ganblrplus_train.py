@@ -79,13 +79,19 @@ def main():
         print("No numerical columns detected. Adding a dummy numerical column for GANBLRPP.")
         # Create a copy of the dataframe to avoid modifying the original
         X = X.copy()
-        # Add a dummy numerical column with constant value
-        X['_dummy_num'] = 0.0
+        # Add a dummy numerical column with small random values to avoid covariance issues
+        np.random.seed(seed)  # Set seed for reproducibility
+        X['_dummy_num'] = np.random.normal(0, 0.01, size=X.shape[0])
         # Set this as the only numerical column (at the last index)
         numerical_columns = [X.shape[1] - 1]
+        print("Added random normal dummy column with small variance to avoid covariance issues")
 
-    # Initialize GANBLRPP model with numerical columns
-    model = GANBLRPP(numerical_columns=numerical_columns, random_state=seed)
+    # Initialize GANBLRPP model with numerical columns and increased regularization for GMM
+    model = GANBLRPP(
+        numerical_columns=numerical_columns, 
+        random_state=seed,
+        gmm_params={'covariance_type': 'full', 'reg_covar': 1e-3}  # Increase regularization to avoid ill-defined covariance
+    )
 
     print(f"Training GANBLR++ model with k={args.k}, epochs={args.epochs}")
     # Convert to numpy arrays for training
