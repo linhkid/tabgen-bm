@@ -15,7 +15,7 @@ def improve_reproducibility(seed):
     random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
-    zero.improve_reproducibility(seed)
+    #zero.improve_reproducibility(seed)
 
 def run_ctabganplus(args):
     # Setup paths

@@ -24,7 +24,7 @@ def main():
 
     # Set default epochs based on size if not provided
     if args.epochs is None:
-        args.epochs = 50 if args.size_category == 'large' else 20
+        args.epochs = 150 if args.size_category == 'large' else 100
     
     model_name = "rlig"  # or "ganblr++"
     dataset_name = args.dataset
