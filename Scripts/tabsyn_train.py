@@ -45,7 +45,7 @@ def run_tabsyn(dataset_name, seed=42, data_dir=None):
     os.makedirs(save_dir, exist_ok=True)
 
     # Load VAE latent embeddings
-    args_obj = argparse.Namespace(dataname=dataset_name, device=device)
+    args_obj = argparse.Namespace(dataname=dataset_name, device=device, data_dir=data_dir)
     train_z, _, _, ckpt_dir, _ = get_input_train(args_obj)
 
     z = train_z

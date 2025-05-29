@@ -12,9 +12,21 @@ from transformers import TrainingArguments
 from great.great_trainer import GReaTTrainer
 from great.great_dataset import GReaTDataset, GReaTDataCollator
 
-def run_great(dataset_name, real_data_dir="Data", synthetic_dir="Synthetic", seed=42):
+def run_great(dataset_name, real_data_dir="Data", synthetic_dir="Synthetic", seed=42, data_dir=None):
     model_name = "great"
-    data_path = os.path.join(real_data_dir, dataset_name)
+    
+    # Use specific data directory if provided, otherwise check for seed-specific directory
+    if data_dir:
+        data_path = data_dir
+    else:
+        # Check for seed-specific directory structure
+        seed_dir = os.path.join(real_data_dir, dataset_name, f"seed{seed}")
+        if os.path.exists(seed_dir):
+            data_path = seed_dir
+        else:
+            data_path = os.path.join(real_data_dir, dataset_name)
+    
+    print(f"Using data path: {data_path}")
     
     # Create a seed-specific save directory
     save_path = os.path.join(synthetic_dir, dataset_name, model_name, f"seed{seed}")
@@ -132,12 +144,10 @@ if __name__ == "__main__":
     parser.add_argument('--seed', type=int, default=42)
     args = parser.parse_args()
     
-    # Use specific data_dir if provided, otherwise use the real_data_dir/dataset path
-    data_dir = args.data_dir if args.data_dir else os.path.join(args.real_data_dir, args.dataset)
-
     run_great(
         dataset_name=args.dataset,
-        real_data_dir=os.path.dirname(data_dir),  # Get the parent directory
+        real_data_dir=args.real_data_dir,
         synthetic_dir=args.synthetic_dir,
-        seed=args.seed
+        seed=args.seed,
+        data_dir=args.data_dir
     )

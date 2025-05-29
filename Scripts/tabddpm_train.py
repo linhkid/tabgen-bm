@@ -14,10 +14,22 @@ from tabddpm.lib.data import Transformations, prepare_fast_dataloader
 import zero
 
 
-def run_tabddpm(dataset_name, real_data_dir="Data", synthetic_dir="Synthetic", seed=42):
+def run_tabddpm(dataset_name, real_data_dir="Data", synthetic_dir="Synthetic", seed=42, data_dir=None):
     # === Setup Paths ===
     model_name = "tabddpm"
-    data_path = os.path.join(real_data_dir, dataset_name)
+    
+    # Use specific data directory if provided, otherwise check for seed-specific directory
+    if data_dir:
+        data_path = data_dir
+    else:
+        # Check for seed-specific directory structure
+        seed_dir = os.path.join(real_data_dir, dataset_name, f"seed{seed}")
+        if os.path.exists(seed_dir):
+            data_path = seed_dir
+        else:
+            data_path = os.path.join(real_data_dir, dataset_name)
+    
+    print(f"Using data path: {data_path}")
     
     # Create a seed-specific save directory
     save_path = os.path.join(synthetic_dir, dataset_name, model_name, f"seed{seed}")
@@ -149,12 +161,10 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     
-    # Use the specific data_dir if provided, otherwise construct path from real_data_dir and dataset
-    data_dir = args.data_dir if args.data_dir else os.path.join(args.real_data_dir, args.dataset)
-
     run_tabddpm(
         dataset_name=args.dataset,
-        real_data_dir=os.path.dirname(data_dir),  # Get the parent directory
+        real_data_dir=args.real_data_dir,
         synthetic_dir=args.synthetic_dir,
-        seed=args.seed
+        seed=args.seed,
+        data_dir=args.data_dir
     )

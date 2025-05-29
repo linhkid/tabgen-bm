@@ -239,7 +239,15 @@ def process_dataset(dataset_name, dataset_path, size_category, models, base_dir,
             elif model == "tabddpm":
                 # Originally used PyTorch environment
                 script_path = os.path.join(base_dir, "Scripts", "tabddpm_train.py")
-                run_command(f"python {script_path} --dataset {dataset_name} --seed {seed} --data_dir {seed_data_dir}")
+                
+                # Make sure the exact seed directory exists
+                if not os.path.exists(seed_data_dir):
+                    print(f"ERROR: Seed data directory not found: {seed_data_dir}")
+                
+                # Build parent directory for dataset
+                dataset_parent_dir = os.path.join(base_dir, "Data")
+                
+                run_command(f"python {script_path} --dataset {dataset_name} --real_data_dir {dataset_parent_dir} --data_dir {seed_data_dir} --seed {seed}")
 
                 eval_script = os.path.join(base_dir, "Scripts", "tstr_evaluation.py")
                 results_dir = os.path.join(base_dir, "Results", dataset_name)
@@ -267,7 +275,15 @@ def process_dataset(dataset_name, dataset_path, size_category, models, base_dir,
             elif model == "great":
                 # Originally used PyTorch environment
                 script_path = os.path.join(base_dir, "Scripts", "great_train.py")
-                run_command(f"python {script_path} --dataset {dataset_name} --seed {seed} --data_dir {seed_data_dir}")
+                
+                # Make sure the exact seed directory exists
+                if not os.path.exists(seed_data_dir):
+                    print(f"ERROR: Seed data directory not found: {seed_data_dir}")
+                
+                # Build parent directory for dataset
+                dataset_parent_dir = os.path.join(base_dir, "Data")
+                
+                run_command(f"python {script_path} --dataset {dataset_name} --real_data_dir {dataset_parent_dir} --data_dir {seed_data_dir} --seed {seed}")
 
                 eval_script = os.path.join(base_dir, "Scripts", "tstr_evaluation.py")
                 results_dir = os.path.join(base_dir, "Results", dataset_name)
