@@ -21,7 +21,20 @@ def improve_reproducibility(seed):
 
 def run_ctabgan(args):
     # Setup paths
-    dataset_path = os.path.join(args.real_data_dir, args.dataset_name)
+    if hasattr(args, 'data_dir') and args.data_dir:
+        # If a specific data directory is provided, use it directly
+        dataset_path = args.data_dir
+    else:
+        # Otherwise, check for seed-specific directory
+        seed_dir = os.path.join(args.real_data_dir, args.dataset_name, f"seed{args.seed}")
+        if os.path.exists(seed_dir):
+            dataset_path = seed_dir
+        else:
+            # Fallback to the regular path
+            dataset_path = os.path.join(args.real_data_dir, args.dataset_name)
+    
+    print(f"Using dataset path: {dataset_path}")
+    
     x_path = os.path.join(dataset_path, "x_train.csv")
     y_path = os.path.join(dataset_path, "y_train.csv")
     
@@ -30,7 +43,22 @@ def run_ctabgan(args):
     os.makedirs(save_path, exist_ok=True)
 
     # Load info.json
-    info_path = os.path.join(args.real_data_dir, args.dataset_name, "info.json")
+    # First, try directly in the dataset_path directory
+    info_path = os.path.join(dataset_path, "info.json")
+    
+    # If not found and we're in a seed directory, try the parent directory
+    if not os.path.exists(info_path) and "seed" in dataset_path:
+        parent_dir = os.path.dirname(dataset_path)
+        info_path = os.path.join(parent_dir, "info.json")
+    
+    # If still not found, try in the dataset directory
+    if not os.path.exists(info_path):
+        dataset_dir = os.path.join(args.real_data_dir, args.dataset_name)
+        info_path = os.path.join(dataset_dir, "info.json")
+        
+    # Print paths for debugging
+    print(f"Looking for info.json at: {info_path}")
+    
     with open(info_path, "r") as f:
         info = json.load(f)
 

@@ -60,14 +60,18 @@ def run_ctgan(args):
     # First, try directly in the dataset_path directory
     info_path = os.path.join(dataset_path, "info.json")
     
-    # If not found, try one level up in the directory structure
-    if not os.path.exists(info_path):
+    # If not found and we're in a seed directory, try the parent directory
+    if not os.path.exists(info_path) and "seed" in dataset_path:
         parent_dir = os.path.dirname(dataset_path)
         info_path = os.path.join(parent_dir, "info.json")
     
-    # If still not found, try in the base data directory
+    # If still not found, try in the dataset directory
     if not os.path.exists(info_path):
-        info_path = os.path.join(args.real_data_dir, "info.json")
+        dataset_dir = os.path.join(args.real_data_dir, args.dataset_name)
+        info_path = os.path.join(dataset_dir, "info.json")
+        
+    # Print paths for debugging
+    print(f"Looking for info.json at: {info_path}")
     
     with open(info_path, "r") as f:
         info = json.load(f)
