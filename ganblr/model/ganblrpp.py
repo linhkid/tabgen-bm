@@ -5,11 +5,21 @@ from scipy.stats import truncnorm
 import numpy as np
 
 class DMMDiscritizer:
-    def __init__(self, random_state):
-        self.__dmm_params = dict(weight_concentration_prior_type="dirichlet_process",
-            n_components=2 * 5, reg_covar=0, init_params='random',
-            max_iter=1500, mean_precision_prior=.1,
-            random_state=random_state)
+    def __init__(self, random_state, gmm_params=None):
+        # Default GMM parameters
+        self.__dmm_params = dict(
+            weight_concentration_prior_type="dirichlet_process",
+            n_components=2 * 5, 
+            reg_covar=0, 
+            init_params='random',
+            max_iter=1500, 
+            mean_precision_prior=.1,
+            random_state=random_state
+        )
+        
+        # Override with user-provided params if any
+        if gmm_params and isinstance(gmm_params, dict):
+            self.__dmm_params.update(gmm_params)
 
         self.__scaler = MinMaxScaler()
         self.__dmms = []
@@ -175,11 +185,24 @@ class GANBLRPP:
     random_state : int, RandomState instance or None
         Controls the random seed given to the method chosen to initialize the parameters of `BayesianGaussianMixture` used by `GANBLRPP`.
     """
-    def __init__(self, numerical_columns, random_state=None):
-        self.__discritizer = DMMDiscritizer(random_state)
+    def __init__(self, numerical_columns, random_state=None, gmm_params=None, **kwargs):
+        """
+        Initialize GANBLRPP model.
+        
+        Parameters:
+        -----------
+        numerical_columns: list of int
+            Indices of numerical columns in the dataset
+        random_state: int or None, default=None
+            Random seed for reproducibility
+        gmm_params: dict or None, default=None
+            Optional parameters for the GMM model
+        **kwargs: dict
+            Additional parameters (ignored)
+        """
+        self.__discritizer = DMMDiscritizer(random_state, gmm_params)
         self.__ganblr = GANBLR()
         self._numerical_columns = numerical_columns
-        pass
     
     def fit(self, x, y, k=0, batch_size=32, epochs=10, warmup_epochs=1, verbose=1):
         '''
