@@ -64,14 +64,14 @@ def main():
         model.fit(
             x=X, 
             y=y, 
-            k=args.k,
+            k=1,
             batch_size=args.batch_size, 
-            episodes=args.episodes,
-            epochs=args.epochs,
+            episodes=2,
+            epochs=50,
             warmup_epochs=args.warmup_epochs,
             verbose=1,
             gan=args.gan,
-            n=args.n
+            n=2
         )
         
         # Generate synthetic data

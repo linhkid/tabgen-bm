@@ -70,9 +70,9 @@ class RLiG:
         self.constraints = None
         self._ordinal_encoder = OrdinalEncoder(dtype=int, handle_unknown='use_encoded_value', unknown_value=-1)
         self._label_encoder = LabelEncoder()
-        self.beta = 0.8 #original is 0.9
+        self.beta = 0.9 #original is 0.9
         self.beta_min = 0.1
-        self.beta_decay = 0.85 #original is 0.99
+        self.beta_decay = 0.99 #original is 0.99
         self.RLiG_Q_table = {}
 
     def fit(self, x, y, k=0, input_model=None, batch_size=32, episodes=2, epochs=100, warmup_epochs=1, verbose=1, gan=1,

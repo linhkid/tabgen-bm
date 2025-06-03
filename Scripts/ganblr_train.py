@@ -19,7 +19,7 @@ def main():
     parser.add_argument('--data_dir', type=str, default=None, help='Custom data directory to use instead of default')
     args = parser.parse_args()
 
-    args.epochs = 100 if args.size_category == 'large' else 50
+    args.epochs = 50 if args.size_category == 'large' else 30
 
     model_name = "ganblr"
     dataset_name = args.dataset

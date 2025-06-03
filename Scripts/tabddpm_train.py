@@ -72,7 +72,7 @@ def run_tabddpm(dataset_name, real_data_dir="Data", synthetic_dir="Synthetic", s
         'is_y_cond': True,
         'rtdl_params': {
             'd_layers': [256, 256, 256, 256],
-            'dropout': 0.0
+            'dropout': 0.01
         }
     }
 

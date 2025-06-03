@@ -295,7 +295,7 @@ def process_dataset(dataset_name, dataset_path, size_category, models, base_dir,
                 # RLIG is based on KDB module in ganblr
                 script_path = os.path.join(base_dir, "Scripts", "rlig_train.py")
                 run_command(
-                    f"python {script_path} --dataset {dataset_name} --size_category {size_category} --seed {seed} --data_dir {seed_data_dir}")
+                    f"python {script_path} --k 1 --n 2 --dataset {dataset_name} --size_category {size_category} --seed {seed} --data_dir {seed_data_dir}")
 
                 eval_script = os.path.join(base_dir, "Scripts", "tstr_evaluation.py")
                 results_dir = os.path.join(base_dir, "Results", dataset_name)

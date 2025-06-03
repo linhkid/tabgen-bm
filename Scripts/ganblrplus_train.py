@@ -24,7 +24,7 @@ def main():
 
     # Set epochs based on size category if not specified
     if args.epochs is None:
-        args.epochs = 80 if args.size_category == 'small' else 50
+        args.epochs = 50 if args.size_category == 'small' else 30
 
     model_name = "ganblrplus"
     dataset_name = args.dataset
