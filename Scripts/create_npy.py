@@ -34,9 +34,11 @@ def convert_csv_to_npy(dataset_name, data_dir="Data", test_size=0.2, random_stat
     np.random.seed(random_state)
     random.seed(random_state)
 
-    # Just use the provided data_dir directly, don't append dataset_name again
-    # as data_dir already includes the dataset name and seed
+    # Use the provided data_dir directly
     dataset_path = data_dir
+    
+    print(f"Using dataset path: {dataset_path}")
+    print(f"Dataset name: {dataset_name}")
     
     # Try to find info.json in multiple locations
     # First try the data directory itself

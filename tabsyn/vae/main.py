@@ -151,7 +151,14 @@ def main(args):
     encoder_save_path = f'{ckpt_dir}/encoder.pt'
     decoder_save_path = f'{ckpt_dir}/decoder.pt'
 
-    X_num, X_cat, categories, d_numerical = preprocess(data_dir, task_type = info['task_type'])
+    # Make sure task_type exists in info
+    if 'task_type' not in info:
+        # Default to multiclass
+        info['task_type'] = 'multiclass'
+        print(f"No task_type found in info.json, defaulting to {info['task_type']}")
+    
+    print(f"Processing data from {data_dir} with task_type: {info['task_type']}")
+    X_num, X_cat, categories, d_numerical = preprocess(data_dir, task_type=info['task_type'])
 
     X_train_num, _ = X_num
     X_train_cat, _ = X_cat

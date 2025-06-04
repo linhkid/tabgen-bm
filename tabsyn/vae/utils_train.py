@@ -1,5 +1,6 @@
 import numpy as np
 import os
+import json
 import tabsyn.src as src
 from torch.utils.data import Dataset
 
@@ -162,7 +163,6 @@ def make_dataset(
                 info = {'task_type': task_type}
                 try:
                     with open(os.path.join(data_path, 'info.json'), 'w') as f:
-                        import json
                         json.dump(info, f, indent=2)
                     print(f"Created default info.json with task_type: {task_type}")
                 except Exception as e:
