@@ -130,7 +130,43 @@ def make_dataset(
             if y is not None:
                 y[split] = y_t
 
-    info = src.load_json(os.path.join(data_path, 'info.json'))
+    # Try to find info.json in multiple locations
+    try:
+        # First try data_path directory
+        info = src.load_json(os.path.join(data_path, 'info.json'))
+    except (FileNotFoundError, json.JSONDecodeError):
+        try:
+            # Then try parent directory
+            info = src.load_json(os.path.join(os.path.dirname(data_path), 'info.json'))
+        except (FileNotFoundError, json.JSONDecodeError):
+            try:
+                # Then try Data/dataset directory (extract dataset name from path)
+                dataset_name = os.path.basename(data_path.rstrip('/'))
+                if 'seed' in dataset_name:  # If path ends with seed dir, get parent
+                    dataset_name = os.path.basename(os.path.dirname(data_path.rstrip('/')))
+                info = src.load_json(os.path.join('Data', dataset_name, 'info.json'))
+            except (FileNotFoundError, json.JSONDecodeError):
+                # Create a default info if all attempts fail
+                print(f"Warning: info.json not found. Creating a default version.")
+                # Determine if binary or multiclass from y_train data
+                y_train_path = os.path.join(data_path, 'y_train.npy')
+                if os.path.exists(y_train_path):
+                    y_train = np.load(y_train_path)
+                    unique_classes = len(np.unique(y_train))
+                    task_type = 'multiclass' if unique_classes > 2 else 'binclass'
+                else:
+                    # Default to multiclass if can't determine
+                    task_type = 'multiclass'
+                
+                # Create and save a basic info.json
+                info = {'task_type': task_type}
+                try:
+                    with open(os.path.join(data_path, 'info.json'), 'w') as f:
+                        import json
+                        json.dump(info, f, indent=2)
+                    print(f"Created default info.json with task_type: {task_type}")
+                except Exception as e:
+                    print(f"Note: Could not save info.json: {e}, but will continue with generated info")
 
     D = src.Dataset(
         X_num,

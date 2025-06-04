@@ -34,8 +34,45 @@ def convert_csv_to_npy(dataset_name, data_dir="Data", test_size=0.2, random_stat
     np.random.seed(random_state)
     random.seed(random_state)
 
-    dataset_path = os.path.join(data_dir, dataset_name)
+    # Just use the provided data_dir directly, don't append dataset_name again
+    # as data_dir already includes the dataset name and seed
+    dataset_path = data_dir
+    
+    # Try to find info.json in multiple locations
+    # First try the data directory itself
     info_path = os.path.join(dataset_path, "info.json")
+    if not os.path.exists(info_path):
+        # If not found, try parent directory
+        parent_dir = os.path.dirname(dataset_path)
+        info_path = os.path.join(parent_dir, "info.json")
+        if not os.path.exists(info_path):
+            # If still not found, try standard Data/dataset_name/info.json
+            info_path = os.path.join("Data", dataset_name, "info.json")
+            if not os.path.exists(info_path):
+                # If still not found, create a default info.json
+                print(f"Warning: info.json not found. Creating a default version at {dataset_path}")
+                x_df = pd.read_csv(os.path.join(dataset_path, "x_train.csv"))
+                
+                # Detect numerical and categorical columns
+                num_idx = []
+                cat_idx = []
+                for i, col in enumerate(x_df.columns):
+                    if pd.api.types.is_numeric_dtype(x_df[col]) and x_df[col].nunique() > 10:
+                        num_idx.append(i)
+                    else:
+                        cat_idx.append(i)
+                
+                # Create default info
+                info = {
+                    "num_col_idx": num_idx,
+                    "cat_col_idx": cat_idx
+                }
+                
+                # Save the default info
+                info_path = os.path.join(dataset_path, "info.json")
+                with open(info_path, "w") as f:
+                    json.dump(info, f, indent=2)
+                print(f"Created default info.json with num_cols: {num_idx}, cat_cols: {cat_idx}")
 
     with open(info_path, "r") as f:
         info = json.load(f)

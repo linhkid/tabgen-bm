@@ -71,11 +71,50 @@ def main(args):
     # Use custom data directory if provided
     if args.data_dir:
         data_dir = args.data_dir
-        # For consistency, extract info from the same directory
-        info_path = os.path.join(data_dir, "info.json")
     else:
         data_dir = f'Data/{dataname}'
-        info_path = f'Data/{dataname}/info.json'
+
+    # Try to find info.json in multiple locations
+    # First try the data directory itself
+    info_path = os.path.join(data_dir, "info.json")
+    if not os.path.exists(info_path):
+        # If not found, try parent directory
+        parent_dir = os.path.dirname(data_dir)
+        info_path = os.path.join(parent_dir, "info.json")
+        if not os.path.exists(info_path):
+            # If still not found, try standard Data/dataset_name/info.json
+            info_path = os.path.join("Data", dataname, "info.json")
+            if not os.path.exists(info_path):
+                # If info.json doesn't exist anywhere, create a basic one
+                print(f"Warning: info.json not found. Creating a default version at {data_dir}")
+                
+                # Read the data first to determine column types
+                X_num_path = os.path.join(data_dir, "X_num_train.npy")
+                X_cat_path = os.path.join(data_dir, "X_cat_train.npy")
+                
+                if not os.path.exists(X_num_path) or not os.path.exists(X_cat_path):
+                    raise FileNotFoundError(f"Required .npy files not found at {data_dir}. Run create_npy.py first.")
+                
+                # Determine if binary or multiclass classification
+                y_train_path = os.path.join(data_dir, "y_train.npy")
+                if os.path.exists(y_train_path):
+                    y_data = np.load(y_train_path)
+                    unique_labels = len(np.unique(y_data))
+                    task_type = 'multiclass' if unique_labels > 2 else 'binary'
+                else:
+                    # Default to multiclass if can't determine
+                    task_type = 'multiclass'
+                
+                # Create default info
+                info = {
+                    "task_type": task_type
+                }
+                
+                # Save the default info
+                info_path = os.path.join(data_dir, "info.json")
+                with open(info_path, "w") as f:
+                    json.dump(info, f, indent=2)
+                print(f"Created default info.json with task_type: {task_type}")
 
     max_beta = args.max_beta
     min_beta = args.min_beta
@@ -83,8 +122,25 @@ def main(args):
 
     device = args.device
 
+    # Now load the info.json (whether it existed or we created it)
     with open(info_path, 'r') as f:
         info = json.load(f)
+        
+    # If task_type is missing, add it as a default
+    if 'task_type' not in info:
+        # Try to infer from y data
+        y_train_path = os.path.join(data_dir, "y_train.npy")
+        if os.path.exists(y_train_path):
+            y_data = np.load(y_train_path)
+            unique_labels = len(np.unique(y_data))
+            info['task_type'] = 'multiclass' if unique_labels > 2 else 'binary'
+        else:
+            # Default to multiclass if can't determine
+            info['task_type'] = 'multiclass'
+        
+        # Save the updated info
+        with open(info_path, "w") as f:
+            json.dump(info, f, indent=2)
 
     curr_dir = os.path.dirname(os.path.abspath(__file__))
     ckpt_dir = f'{curr_dir}/ckpt/{dataname}' 
