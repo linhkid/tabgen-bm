@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 import random
 from sklearn.model_selection import StratifiedKFold
-from ganblr.model.ganblr import GANBLR
+from ganblr.models.ganblr import GANBLR
 
 
 def main():

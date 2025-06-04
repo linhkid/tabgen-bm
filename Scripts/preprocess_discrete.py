@@ -73,6 +73,7 @@ def preprocess(file_path, output_path, bins=10, strategy='uniform'):
 
     # Combine and save
     df_processed = pd.concat([X, y_encoded], axis=1)
+    # Keep original column names
     df_processed.to_csv(output_path, index=False)
     print(f"Saved preprocessed discrete dataset to: {output_path}")
 
