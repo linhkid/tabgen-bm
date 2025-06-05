@@ -405,15 +405,22 @@ def load_dataset(name, dataset_info):
                         df = df.dropna()
                     # Otherwise, we'll use imputation in the preprocess_data function
 
+                # Detect target column - typically 'class' or the last column
                 if 'class' in df.columns:
-                    # Encode categorical variables
                     X = df.drop('class', axis=1)
-                else:
-                    # Encode categorical variables
+                    y = df[['class']]
+                elif 'xAttack' in df.columns:
                     X = df.drop('xAttack', axis=1)
+                    y = df[['xAttack']]
+                else:
+                    # If no specific target column is identified, use the last column
+                    print(f"No target column 'class' or 'xAttack' found. Using last column as target.")
+                    X = df.iloc[:, :-1]
+                    y = df.iloc[:, -1:]
+                
                 # Change the name of columns to avoid "-" to parsing error
                 X.columns = [col.replace('-', '_') for col in X.columns]
-                y = df.iloc[:, -1:]
+                
                 # Change the name of y dataframe to avoid duplicate "class" keyword
                 y.columns = ["target"]
                 return X, y
