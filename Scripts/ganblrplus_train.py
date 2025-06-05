@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 import random
 import json
-from ganblr.model.ganblrpp import GANBLRPP
+from ganblr.models.ganblrpp import GANBLRPP
 
 
 def main():
@@ -90,7 +90,7 @@ def main():
     model = GANBLRPP(
         numerical_columns=numerical_columns, 
         random_state=seed,
-        gmm_params={'covariance_type': 'full', 'reg_covar': 1e-3}  # Increase regularization to avoid ill-defined covariance
+        #gmm_params={'covariance_type': 'full', 'reg_covar': 1e-3}  # Increase regularization to avoid ill-defined covariance
     )
 
     print(f"Training GANBLR++ model with k={args.k}, epochs={args.epochs}")

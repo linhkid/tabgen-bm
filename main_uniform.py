@@ -551,7 +551,7 @@ def process_dataset(dataset_name, dataset_path, size_category, models, base_dir,
         # Important: Use integers for indices (not strings) to ensure compatibility
         # Most models expect num_col_idx and cat_col_idx to be integers
         info = {
-            "task_type": "multiclass" if len(np.unique(y_train)) > 2 else "binary",
+            "task_type": "multiclass" if len(np.unique(y_train)) > 2 else "binclass",
             "n_classes": int(len(np.unique(y_train))),
             "num_col_idx": [int(i) for i in range(original_numeric_cols_count)],
             "cat_col_idx": [int(i) for i in range(original_numeric_cols_count, X_train.shape[1])]
