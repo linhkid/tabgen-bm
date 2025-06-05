@@ -554,7 +554,8 @@ def process_dataset(dataset_name, dataset_path, size_category, models, base_dir,
             "task_type": "multiclass" if len(np.unique(y_train)) > 2 else "binclass",
             "n_classes": int(len(np.unique(y_train))),
             "num_col_idx": [int(i) for i in range(original_numeric_cols_count)],
-            "cat_col_idx": [int(i) for i in range(original_numeric_cols_count, X_train.shape[1])]
+            "cat_col_idx": [int(i) for i in range(original_numeric_cols_count, X_train.shape[1])],
+            "target_col_idx": [int(X_train.shape[1])]  # Target column index is after all features
         }
         
         # Save the info.json file
